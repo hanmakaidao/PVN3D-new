@@ -77,7 +77,7 @@ class Config:
                     'datasets/ycb/YCB_Video_Dataset/preprocessed_valtestset.pkl'
                 )
             )
-            self.use_preprocess = True
+            self.use_preprocess = False
             self.ycb_r_lst = list(np.loadtxt(ycb_r_lst_p))
             self.ycb_cls_lst = self.read_lines(self.ycb_cls_lst_p)
             self.ycb_sym_cls_ids = [13, 16, 19, 20, 21]
