@@ -18,6 +18,7 @@ import argparse
 import time
 import shutil
 import tqdm
+import gorilla
 from lib.utils.etw_pytorch_utils.viz import *
 from lib import PVN3D
 from datasets.linemod.linemod_dataset import LM_Dataset
@@ -78,6 +79,16 @@ def worker_init_fn(worker_id):
     np.random.seed(np.random.get_state()[1][0] + worker_id)
 
 
+def logger(log_name="LineMod", log_name_with_time=False):
+    if log_name_with_time:
+        log_name = log_name + time.strftime("_%Y-%m-%d_%H:%M:%S", time.localtime())
+    log_dir, logger = gorilla.collect_logger(prefix=log_name)
+    backup_list = ["train", "common.py"]
+    gorilla.backup(log_dir, backup_list, logger)
+    logger.info("****************** Start Logging *******************")
+    return logger
+
+
 def checkpoint_state(model=None, optimizer=None, best_prec=None, epoch=None, it=None):
     optim_state = optimizer.state_dict() if optimizer is not None else None
     if model is not None:
@@ -99,18 +110,26 @@ def checkpoint_state(model=None, optimizer=None, best_prec=None, epoch=None, it=
 
 def save_checkpoint(
         state, is_best, filename="checkpoint", bestname="model_best",
-        bestname_pure='pvn3d_best'
+        bestname_pure='pvn3d_best', logger=None
 ):
     filename = "{}.pth.tar".format(filename)
     torch.save(state, filename)
+    if logger is not None:
+        logger.info(filename + "saved")
     if is_best:
         shutil.copyfile(filename, "{}.pth.tar".format(bestname))
         shutil.copyfile(filename, "{}.pth.tar".format(bestname_pure))
+        if logger is not None:
+            logger.info("Lowest test loss model weights saved")
 
 
-def load_checkpoint(model=None, optimizer=None, filename="checkpoint"):
+def load_checkpoint(model=None, optimizer=None, filename="checkpoint", logger=None):
     assert os.path.isfile(filename), "==> Checkpoint '{}' not found".format(filename)
-    print("==> Loading from checkpoint '{}'".format(filename))
+    if logger is not None:
+        logger.info("==> Loading from checkpoint '{}'".format(filename))
+    else:
+        print("==> Loading from checkpoint '{}'".format(filename))
+
     try:
         checkpoint = torch.load(filename)
     except:
@@ -122,7 +141,11 @@ def load_checkpoint(model=None, optimizer=None, filename="checkpoint"):
         model.load_state_dict(checkpoint["model_state"])
     if optimizer is not None and checkpoint["optimizer_state"] is not None:
         optimizer.load_state_dict(checkpoint["optimizer_state"])
-    print("==> Done")
+
+    if logger is not None:
+        logger.info("==> Done")
+    else:
+        print("==> Done")
     return it, epoch, best_prec
 
 
@@ -223,6 +246,7 @@ class Trainer(object):
         lr_scheduler=None,
         bnm_scheduler=None,
         viz=None,
+        logger=None
     ):
         self.model, self.model_fn, self.optimizer, self.lr_scheduler, self.bnm_scheduler = (
             model,
@@ -324,6 +348,7 @@ class Trainer(object):
                 # Reset numpy seed.
                 # REF: https://github.com/pytorch/pytorch/issues/5059
                 np.random.seed()
+                cumulative_loss = 0.0  # initialize for calculating average loss over an epoch
                 if log_epoch_f is not None:
                     os.system("echo {} > {}".format(epoch, log_epoch_f))
                 for ibs, batch in enumerate(train_loader):
@@ -335,6 +360,8 @@ class Trainer(object):
                     self.optimizer.zero_grad()
                     _, loss, res = self.model_fn(self.model, batch)
 
+                    cumulative_loss += loss  # for calculating average loss over an epoch #!affect backward unknown
+
                     loss.backward()
                     self.optimizer.step()
                     
@@ -344,7 +371,7 @@ class Trainer(object):
                     it += 1
 
                     pbar.update()
-                    pbar.set_postfix(dict(total_it=it))
+                    pbar.set_postfix(dict(total_it=it, batch_loss=float(loss), epoch_loss=float(cumulative_loss / (ibs + 1))))
                     tbar.refresh()
 
                     if self.viz is not None:
@@ -370,6 +397,7 @@ class Trainer(object):
                                 filename=self.checkpoint_name,
                                 bestname=self.best_name +'_%.4f'% val_loss,
                                 bestname_pure=self.best_name,
+                                logger=logger
                             )
                             info_p = self.checkpoint_name.replace(
                                 '.pth.tar','_epoch.txt'
@@ -391,6 +419,7 @@ class Trainer(object):
 
 
 if __name__ == "__main__":
+    logger = logger()
     print("cls_type: ", args.cls)
     if not args.eval_net:
         train_ds = LM_Dataset('train', cls_type=args.cls)
@@ -438,7 +467,7 @@ if __name__ == "__main__":
     # load status from checkpoint
     if args.checkpoint is not None:
         checkpoint_status = load_checkpoint(
-            model, optimizer, filename=args.checkpoint
+            model, optimizer, filename=args.checkpoint, logger=logger
         )
         if checkpoint_status is not None:
             it, start_epoch, best_loss = checkpoint_status
@@ -492,6 +521,7 @@ if __name__ == "__main__":
         lr_scheduler = lr_scheduler,
         bnm_scheduler = bnm_scheduler,
         viz = viz,
+        logger=logger
     )
 
     if args.eval_net:
