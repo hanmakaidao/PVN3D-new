@@ -9,3 +9,4 @@ pvn3d/datasets/ycb/YCB_Video_Dataset
 pvn3d/datasets/linemod/Linemod_preprocessed
 .vscode/settings.json
 pvn3d/train_log
+pvn3d/log

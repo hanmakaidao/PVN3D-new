@@ -19,6 +19,7 @@ import os
 import argparse
 import time
 import shutil
+import gorilla
 
 import tqdm
 from lib.utils.etw_pytorch_utils.viz import *
@@ -62,6 +63,16 @@ bnm_clip = 1e-2
 
 def worker_init_fn(worker_id):
     np.random.seed(np.random.get_state()[1][0] + worker_id)
+
+
+def logger(log_name="gakki", log_name_with_time=True, *args):
+    if log_name_with_time:
+        log_name = log_name + time.strftime("_%Y-%m-%d_%H:%M:%S", time.localtime())
+    log_dir, logger = gorilla.collect_logger(prefix=log_name)
+    backup_list = ["train", "common.py"]
+    gorilla.backup(log_dir, backup_list, logger)
+    logger.info("****************** Start Logging *******************")
+    return logger
 
 
 def checkpoint_state(model=None, optimizer=None, best_prec=None, epoch=None, it=None):
@@ -391,7 +402,7 @@ class Trainer(object):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-
+    logger = logger()
     if not args.eval_net:
         train_ds = YCB_Dataset('train')
 
