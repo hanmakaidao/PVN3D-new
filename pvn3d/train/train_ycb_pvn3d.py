@@ -268,7 +268,7 @@ class Trainer(object):
             self.optimizer.zero_grad()
 
             _, loss, eval_res = self.model_fn(
-                self.model, data, is_eval=True, is_test=is_test, iou_evaluator=iou_evaluator,scene_no=i
+                self.model, data, is_eval=True, is_test=is_test, iou_evaluator=iou_evaluator, scene_no=i
             )
 
             if 'loss_target' in eval_res.keys():
@@ -300,7 +300,7 @@ class Trainer(object):
         train_loader,
         test_loader=None,
         best_loss=0.0,
-        log_epoch_f = None
+        log_epoch_f=None
     ):
         r"""
            Call to begin training the model
@@ -370,7 +370,7 @@ class Trainer(object):
                     cumulative_loss += loss  # for calculating average loss over an epoch #!affect backward unknown
 
                     pbar.update()
-                    pbar.set_postfix(dict(total_it=it, lr=lr, batch_loss=float(loss), epoch_loss=float( cumulative_loss / (ibs + 1) )))
+                    pbar.set_postfix(dict(total_it=it, lr=lr, batch_loss=float(loss), epoch_loss=float(cumulative_loss / (ibs + 1))))
                     tbar.refresh()
 
                     if self.viz is not None:
@@ -394,12 +394,12 @@ class Trainer(object):
                                 ),
                                 is_best,
                                 filename=self.checkpoint_name,
-                                bestname=self.best_name+'_%.4f'%val_loss,
+                                bestname=self.best_name + '_%.4f'%val_loss,
                                 bestname_pure=self.best_name,
                                 logger=logger
                             )
                             info_p = self.checkpoint_name.replace(
-                                '.pth.tar','_epoch.txt'
+                                '.pth.tar', '_epoch.txt'
                             )
                             os.system(
                                 'echo {} {} >> {}'.format(
@@ -426,7 +426,6 @@ if __name__ == "__main__":
         #############################################################
         while not os.path.exists(config.preprocessed_testset_pth):
             print("wait for preprocess dataset.")
-            import time
             time.sleep(10)
         #############################################################
 
@@ -518,11 +517,11 @@ if __name__ == "__main__":
         model,
         model_fn,
         optimizer,
-        checkpoint_name = os.path.join(checkpoint_fd, "pvn3d"),
-        best_name = os.path.join(checkpoint_fd, "pvn3d_best"),
-        lr_scheduler = lr_scheduler,
-        bnm_scheduler = bnm_scheduler,
-        viz = viz,
+        checkpoint_name=os.path.join(checkpoint_fd, "pvn3d"),
+        best_name=os.path.join(checkpoint_fd, "pvn3d_best"),
+        lr_scheduler=lr_scheduler,
+        bnm_scheduler=bnm_scheduler,
+        viz=viz,
         logger=logger
     )
 

@@ -302,7 +302,7 @@ class Trainer(object):
         train_loader,
         test_loader=None,
         best_loss=1e4,
-        log_epoch_f = None
+        log_epoch_f=None
     ):
         r"""
            Call to begin training the model
@@ -362,7 +362,7 @@ class Trainer(object):
 
                     loss.backward()
                     self.optimizer.step()
-                    
+
                     if self.lr_scheduler is not None:
                         self.lr_scheduler.step(it)
 
@@ -396,7 +396,7 @@ class Trainer(object):
                                 ),
                                 is_best,
                                 filename=self.checkpoint_name,
-                                bestname=self.best_name +'_%.4f'% val_loss,
+                                bestname=self.best_name + '_%.4f'% val_loss,
                                 bestname_pure=self.best_name,
                                 logger=logger
                             )
@@ -517,11 +517,11 @@ if __name__ == "__main__":
         model,
         model_fn,
         optimizer,
-        checkpoint_name = os.path.join(checkpoint_fd, "{}_pvn3d".format(args.cls)),
-        best_name = os.path.join(checkpoint_fd, "{}_pvn3d_best".format(args.cls)),
-        lr_scheduler = lr_scheduler,
-        bnm_scheduler = bnm_scheduler,
-        viz = viz,
+        checkpoint_name=os.path.join(checkpoint_fd, "{}_pvn3d".format(args.cls)),
+        best_name=os.path.join(checkpoint_fd, "{}_pvn3d_best".format(args.cls)),
+        lr_scheduler=lr_scheduler,
+        bnm_scheduler=bnm_scheduler,
+        viz=viz,
         logger=logger
     )
 
