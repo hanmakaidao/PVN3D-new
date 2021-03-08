@@ -41,39 +41,6 @@ config = Config(dataset_name='ycb')
 
 parser = argparse.ArgumentParser(description="Arg parser")
 parser.add_argument(
-    "-weight_decay",
-    type=float,
-    default=0,
-    help="L2 regularization coeff [default: 0.0]",
-)
-parser.add_argument(
-    "-lr", type=float, default=1e-2, help="Initial learning rate [default: 1e-2]"
-)
-parser.add_argument(
-    "-lr_decay",
-    type=float,
-    default=0.5,
-    help="Learning rate decay gamma [default: 0.5]",
-)
-parser.add_argument(
-    "-decay_step",
-    type=float,
-    default=2e5,
-    help="Learning rate decay step [default: 20]",
-)
-parser.add_argument(
-    "-bn_momentum",
-    type=float,
-    default=0.9,
-    help="Initial batch norm momentum [default: 0.9]",
-)
-parser.add_argument(
-    "-bn_decay",
-    type=float,
-    default=0.5,
-    help="Batch norm momentum decay gamma [default: 0.5]",
-)
-parser.add_argument(
     "-checkpoint", type=str, default=None, help="Checkpoint to start from"
 )
 parser.add_argument(
@@ -87,9 +54,7 @@ parser.add_argument(
     action='store_true',
     help="whether is to eval net."
 )
-
 parser.add_argument("--test", action="store_true")
-parser.add_argument("--cal_metrics", action="store_true")
 
 lr_clip = 1e-5
 bnm_clip = 1e-2
@@ -171,7 +136,7 @@ def model_fn_decorator(
             )
 
             #! IoU evaluator
-            if is_eval:
+            if is_test:
                 semantic_pred = pred_rgbd_seg.squeeze().max(1)[1]  # [N] long, cuda
                 label_for_iou = labels.squeeze()
                 inputs = [{"scene_name": str(scene_no), "labels": label_for_iou}]
@@ -460,7 +425,7 @@ if __name__ == "__main__":
     model = convert_model(model)
     model.cuda()
     optimizer = optim.Adam(
-        model.parameters(), lr=args.lr, weight_decay=args.weight_decay
+        model.parameters(), lr=config.lr, weight_decay=config.weight_decay
     )
 
     # default value
@@ -496,8 +461,8 @@ if __name__ == "__main__":
         cycle_momentum=False, base_momentum=0.8, max_momentum=0.9, last_epoch=-1)
 
     bnm_lmbd = lambda it: max(
-        args.bn_momentum
-        * args.bn_decay ** (int(it * config.mini_batch_size / args.decay_step)),
+        config.bn_momentum
+        * config.bn_decay ** (int(it * config.mini_batch_size / config.decay_step)),
         bnm_clip,
     )
     bnm_scheduler = pt_utils.BNMomentumScheduler(

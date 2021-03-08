@@ -43,54 +43,38 @@ class Config:
         self.n_sample_points = 12288
         self.n_keypoints = 8
         self.n_min_points = 400
-        self.loss_weight = [2.5, 1.0, 1.0]
+        self.noise_trans = 0.05             # range of the random noise of translation added to the training data
 
-        self.noise_trans = 0.05 # range of the random noise of translation added to the training data
+        self.loss_weight = [2.0, 1.0, 1.0]  # weight of 3 loss: semantic, key point offset, centre offset
+        self.weight_decay = 0.0             # L2 regularization coeff [default: 0.0]
+        self.lr = 1e-2                      # Initial learning rate [default: 1e-2]
+        self.lr_decay = 0.5                 # Learning rate decay gamma [default: 0.5]
+        self.decay_step = 2e5               # Learning rate decay step [default: 20]
+        self.bn_momentum = 0.9              # Initial batch norm momentum [default: 0.9]
+        self.bn_decay = 0.5                 # Batch norm momentum decay gamma [default: 0.5]
+
 
         self.preprocessed_testset_pth = ''
         if self.dataset_name == 'ycb':
             self.n_objects = 21 + 1
             self.n_classes = 21 + 1
-            self.ycb_cls_lst_p = os.path.abspath(
-                os.path.join(
-                    self.exp_dir, 'datasets/ycb/dataset_config/classes.txt'
-                )
-            )
-            self.ycb_root = os.path.abspath(
-                os.path.join(
-                    self.exp_dir, 'datasets/ycb/YCB_Video_Dataset'
-                )
-            )
-            self.ycb_kps_dir = os.path.abspath(
-                os.path.join(
-                    self.exp_dir, 'datasets/ycb/ycb_object_kps/'
-                )
-            )
-            ycb_r_lst_p = os.path.abspath(
-                os.path.join(
-                    self.exp_dir, 'datasets/ycb/dataset_config/radius.txt'
-                )
-            )
+            self.ycb_cls_lst_p = os.path.abspath(os.path.join(self.exp_dir, 'datasets/ycb/dataset_config/classes.txt'))
+            self.ycb_root = os.path.abspath(os.path.join(self.exp_dir, 'datasets/ycb/YCB_Video_Dataset'))
+            self.ycb_kps_dir = os.path.abspath(os.path.join(self.exp_dir, 'datasets/ycb/ycb_object_kps/'))
+            ycb_r_lst_p = os.path.abspath(os.path.join(self.exp_dir, 'datasets/ycb/dataset_config/radius.txt'))
             self.preprocessed_testset_pth = os.path.abspath(
-                os.path.join(
-                    self.exp_dir,
-                    'datasets/ycb/YCB_Video_Dataset/preprocessed_valtestset.pkl'
-                )
-            )
+                os.path.join(self.exp_dir, 'datasets/ycb/YCB_Video_Dataset/preprocessed_valtestset.pkl'))
             self.use_preprocess = False
             self.ycb_r_lst = list(np.loadtxt(ycb_r_lst_p))
             self.ycb_cls_lst = self.read_lines(self.ycb_cls_lst_p)
             self.ycb_sym_cls_ids = [13, 16, 19, 20, 21]
             self.val_test_pkl_p = os.path.join(
-                self.exp_dir,
-                'datasets/ycb/test_val_data_pts{}.pkl'.format(self.n_sample_points),
-            )
+                self.exp_dir, 'datasets/ycb/test_val_data_pts{}.pkl'.format(self.n_sample_points))
+
         else: # linemod
             self.n_objects = 1 + 1
             self.n_classes = 1 + 1
-            self.lm_cls_lst = [
-                1, 2, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15
-            ]
+            self.lm_cls_lst = [1, 2, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15]
             self.lm_sym_cls_ids = [10, 11]
             self.lm_obj_dict={
                 'ape':1,
@@ -107,26 +91,15 @@ class Config:
                 'lamp':14,
                 'phone':15,
             }
-            self.lm_id2obj_dict = dict(
-                zip(self.lm_obj_dict.values(), self.lm_obj_dict.keys())
+            self.lm_id2obj_dict = dict(zip(self.lm_obj_dict.values(), self.lm_obj_dict.keys())
             )
-            self.lm_root = os.path.abspath(
-                os.path.join(self.exp_dir, 'datasets/linemod/')
-            )
-            self.lm_kps_dir = os.path.abspath(
-                os.path.join(self.exp_dir, 'datasets/linemod/lm_obj_kps/')
-            )
+            self.lm_root = os.path.abspath(os.path.join(self.exp_dir, 'datasets/linemod/'))
+            self.lm_kps_dir = os.path.abspath(os.path.join(self.exp_dir, 'datasets/linemod/lm_obj_kps/'))
             self.lm_sym_cls_ids = [7, 8]
-            self.val_test_pkl_p = os.path.join(
-                self.exp_dir, 'datasets/linemod/test_val_data.pkl',
-            )
-            prep_fd = os.path.join(
-                self.lm_root, "preprocess_testset"
-            )
+            self.val_test_pkl_p = os.path.join(self.exp_dir, 'datasets/linemod/test_val_data.pkl')
+            prep_fd = os.path.join(self.lm_root, "preprocess_testset")
             ensure_fd(prep_fd)
-            self.preprocessed_testset_ptn = os.path.abspath(
-                os.path.join(prep_fd, '{}_pp_vts.pkl')
-            )
+            self.preprocessed_testset_ptn = os.path.abspath(os.path.join(prep_fd, '{}_pp_vts.pkl'))
             self.preprocessed_testset_pth = self.preprocessed_testset_ptn.format(cls_type)
             self.use_preprocess = False
 
