@@ -212,11 +212,10 @@ def model_fn_decorator(
             (pred_kp_of, pred_rgbd_seg, pred_ctr_of), loss,
             {
                 "acc_rgbd": acc_rgbd.item(),
-                "loss": loss.item(),
                 "loss_rgbd_seg": loss_rgbd_seg.item(),
                 "loss_kp_of": loss_kp_of.item(),
                 "loss_ctr_of": loss_ctr_of.item(),
-                "loss_target": loss.item(),
+                "loss": loss.item(),
             }
         )
 
