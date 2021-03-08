@@ -14,12 +14,7 @@ class Config:
         self.dataset_name = dataset_name
         self.exp_dir = os.path.dirname(__file__)
         self.exp_name = os.path.basename(self.exp_dir)
-        self.resnet_ptr_mdl_p = os.path.abspath(
-            os.path.join(
-                self.exp_dir,
-                'lib/ResNet_pretrained_mdl'
-            )
-        )
+        self.resnet_ptr_mdl_p = os.path.abspath(os.path.join(self.exp_dir, 'lib/ResNet_pretrained_mdl'))
         ensure_fd(self.resnet_ptr_mdl_p)
 
         # log folder
@@ -56,8 +51,8 @@ class Config:
 
         self.preprocessed_testset_pth = ''
         if self.dataset_name == 'ycb':
-            self.n_objects = 21 + 1
-            self.n_classes = 21 + 1
+            self.n_objects = 21 + 1         # 21 object + background
+            self.n_classes = 21 + 1         # 21 object + background
             self.ycb_cls_lst_p = os.path.abspath(os.path.join(self.exp_dir, 'datasets/ycb/dataset_config/classes.txt'))
             self.ycb_root = os.path.abspath(os.path.join(self.exp_dir, 'datasets/ycb/YCB_Video_Dataset'))
             self.ycb_kps_dir = os.path.abspath(os.path.join(self.exp_dir, 'datasets/ycb/ycb_object_kps/'))
