@@ -358,8 +358,6 @@ class Trainer(object):
                     self.optimizer.zero_grad()
                     _, loss, res = self.model_fn(self.model, batch)
 
-                    cumulative_loss += loss  # for calculating average loss over an epoch #!affect backward unknown
-
                     loss.backward()
                     self.optimizer.step()
 
@@ -368,8 +366,11 @@ class Trainer(object):
 
                     it += 1
 
+                    lr = self.optimizer.param_groups[0]["lr"]
+                    cumulative_loss += loss  # for calculating average loss over an epoch #!affect backward unknown
+
                     pbar.update()
-                    pbar.set_postfix(dict(total_it=it, batch_loss=float(loss), epoch_loss=float( cumulative_loss / (ibs + 1) )))
+                    pbar.set_postfix(dict(total_it=it, lr=lr, batch_loss=float(loss), epoch_loss=float( cumulative_loss / (ibs + 1) )))
                     tbar.refresh()
 
                     if self.viz is not None:
